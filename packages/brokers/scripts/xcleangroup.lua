@@ -1,16 +1,11 @@
-local info = redis.call('XINFO', 'CONSUMERS', KEYS[1], ARGS[1])
-local empty = true
+local consumers = redis.call('XINFO', 'CONSUMERS', KEYS[1], ARGS[1])
 
-for k, consumer in pairs(info) do
-  if consumer['idle'] != 0 then
-    empty = false
-    break
+for i = 1, #consumers do
+  local consumer = consumers[i]
+  if consumer.idle ~= 0 then
+    return false
   end
 end
 
-if empty then
-  redis.call('XGROUP', 'DESTROY', KEYS[1], ARGS[1])
-  return true
-end
-
-return false
+redis.call('XGROUP', 'DESTROY', KEYS[1], ARGS[1])
+return true
